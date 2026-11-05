@@ -4,26 +4,76 @@ SQLite integration for the Neve programming language, available as `import db`.
 
 ## Install
 
-On Ubuntu/Debian, install SQLite's development package:
+With Neve and nsm already configured, install the package with:
+
+```bash
+nsm i danielcasanova12/db
+```
+
+The package is installed in `$NEVE_LIBS/db`, normally
+`$HOME/.local/neve/lib/db`, including the precompiled `lib.so`.
+Use `import db` in your Neve program.
+
+The binary links dynamically to the system SQLite library (`libsqlite3.so.0`).
+SQLite is not bundled in `lib.so`. If it is not already installed, follow the
+from-scratch instructions below. Installing a precompiled release does not
+require compiling Neve or installing LLVM development tools.
+
+The first release binary targets Linux x86-64, Ubuntu 22.04 and a Neve runtime
+linked against LLVM 21. A different Neve/LLVM ABI requires rebuilding `lib.so`.
+
+## Installation from scratch
+
+These instructions target Ubuntu 22.04 x86-64. Run the `apt-get` commands as
+root, or prefix them with `sudo` on a regular Linux/WSL installation.
+Run the Neve installer as the user who will run Neve.
+
+### 1. Install system dependencies
 
 ```bash
 apt-get update
-apt-get install -y libsqlite3-dev
+apt-get install -y git wget curl bzip2 ca-certificates libsqlite3-dev libatomic1 libffi8 libedit2 zlib1g libzstd1 libxml2 libtinfo6
 ```
 
-With Neve and nsm already installed:
+`libsqlite3-dev` also installs the SQLite runtime dependency. Development
+headers are needed when rebuilding this package; the precompiled binary only
+needs the SQLite runtime shared library to execute.
+
+### 2. Install Neve
 
 ```bash
+wget -qO- https://github.com/NoSavedDATA/Neve/releases/download/neve-bin/install.sh | bash
+export PATH="$HOME/.local/bin:$HOME/.local/neve/bin:$PATH"
 export NEVE_LIBS="$HOME/.local/neve/lib"
 export NSK_LIBS="$NEVE_LIBS"
+```
+
+### 3. Install and verify the SQLite package
+
+```bash
 nsm i danielcasanova12/db
 test -s "$NEVE_LIBS/db/lib.so"
 neve "$NEVE_LIBS/db/tests/smoke.nv"
 ```
 
-The first release binary targets Linux x86-64, Ubuntu 22.04 and a Neve runtime
-linked against LLVM 21. A different Neve/LLVM ABI requires rebuilding `lib.so`.
 The smoke test prints `PACKAGE db PASS` on success.
+
+## Docker
+
+With Neve and nsm already installed in the image, install SQLite through apt
+before installing this package:
+
+```dockerfile
+RUN apt-get update && apt-get install -y --no-install-recommends libsqlite3-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN nsm i danielcasanova12/db \
+    && test -s "$NEVE_LIBS/db/lib.so"
+```
+
+`NEVE_LIBS` must point to the Neve library directory. This keeps SQLite as an
+explicit system dependency rather than copying another shared library into
+Neve's `sys_lib` directory.
 
 ## Example
 
