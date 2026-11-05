@@ -73,7 +73,7 @@ int execute_sql(sqlite3 *db, const std::string &sql) {
             return SQLITE_ERROR;
         }
         cursor = tail;
-        
+
         if (!stmt) continue;
         int columns = sqlite3_column_count(stmt);
         if (columns > 0) {
@@ -150,7 +150,7 @@ extern "C" int db_close(Scope_Struct *ctx, void *handle) {
     sqlite3 *db = static_cast<sqlite3 *>(handle);
     if (!db) return SQLITE_OK;
     int rc = sqlite3_close(db);
-    
+
     if (rc != SQLITE_OK) record_error(db, rc);
     return rc;
 }
