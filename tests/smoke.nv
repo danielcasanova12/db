@@ -1,0 +1,19 @@
+import db
+
+main
+    any connection = db_open(":memory:")
+    if db_valid(connection)==0
+        print("PACKAGE db FAIL: ", db_error())
+    else
+        int rc = db_exec(connection, "CREATE TABLE smoke (id INTEGER, name TEXT, value REAL); INSERT INTO smoke VALUES (1, 'Daniel', 42.5);")
+        any statement = db_prepare(connection, "SELECT id, name, value FROM smoke WHERE id=1")
+        if rc==0 and db_valid(statement)==1
+            rc = db_step(statement)
+            if rc==100
+                int id = db_column_int(statement, 0)
+                str name = db_column_text(statement, 1)
+                float value = db_column_float(statement, 2)
+                if id==1 and name=="Daniel" and value==42.5
+                    print("PACKAGE db PASS")
+            db_finalize(statement)
+        db_close(connection)
